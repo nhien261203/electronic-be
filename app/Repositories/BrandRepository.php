@@ -10,34 +10,41 @@ use Illuminate\Validation\ValidationException;
 
 class BrandRepository implements BrandRepositoryInterface
 {
+    // ✅ Hàm xử lý upload và xóa ảnh (tái sử dụng)
+    private function handleLogoUpload($file, $oldPath = null)
+    {
+        if ($oldPath && Storage::disk('public')->exists(str_replace('/storage/', '', $oldPath))) {
+            Storage::disk('public')->delete(str_replace('/storage/', '', $oldPath));
+        }
+
+        $path = $file->store('brands', 'public');
+        return Storage::url($path);
+    }
+
     public function store(array $data)
     {
-        //Tạo slug từ name
         $slug = Str::slug($data['name']);
 
-        //Kiểm tra slug đã tồn tại hay chưa
         if (Brand::where('slug', $slug)->exists()) {
             throw ValidationException::withMessages([
                 'name' => ['Tên thương hiệu đã tồn tại.']
             ]);
         }
 
-        // Gán slug vào data
         $data['slug'] = $slug;
 
-        // hỉ xử lý ảnh nếu đã qua bước validate slug
         if (isset($data['logo']) && $data['logo']) {
-            $file = $data['logo'];
-            $path = $file->store('brands', 'public');
-            $data['logo'] = Storage::url($path); // storage/brands
+            $data['logo'] = $this->handleLogoUpload($data['logo']);
         }
 
-        //Tạo bản ghi trong database
         return Brand::create($data);
     }
+
     public function getAll()
     {
-        return Brand::orderBy('created_at', 'desc')->get();
+        return Brand::select(['id', 'name', 'slug', 'logo', 'country'])
+            ->orderByDesc('created_at')
+            ->get();
     }
 
     public function findById($id)
@@ -47,11 +54,9 @@ class BrandRepository implements BrandRepositoryInterface
 
     public function update($id, array $data)
     {
-        $brand = Brand::findOrFail($id);
-
+        $brand = $this->findById($id);
         $slug = Str::slug($data['name']);
 
-        // Check nếu slug mới đã tồn tại (trừ chính nó)
         if (Brand::where('slug', $slug)->where('id', '!=', $id)->exists()) {
             throw ValidationException::withMessages([
                 'name' => ['Tên thương hiệu đã tồn tại.']
@@ -60,16 +65,8 @@ class BrandRepository implements BrandRepositoryInterface
 
         $data['slug'] = $slug;
 
-        // Xử lý cập nhật ảnh nếu có
         if (isset($data['logo']) && $data['logo']) {
-            // Xóa ảnh cũ nếu tồn tại
-            if ($brand->logo && Storage::disk('public')->exists(str_replace('/storage/', '', $brand->logo))) {
-                Storage::disk('public')->delete(str_replace('/storage/', '', $brand->logo));
-            }
-
-            $file = $data['logo'];
-            $path = $file->store('brands', 'public');
-            $data['logo'] = Storage::url($path);
+            $data['logo'] = $this->handleLogoUpload($data['logo'], $brand->logo);
         }
 
         $brand->update($data);
@@ -78,13 +75,19 @@ class BrandRepository implements BrandRepositoryInterface
 
     public function delete($id)
     {
-        $brand = Brand::findOrFail($id);
+        $brand = $this->findById($id);
 
-        // Xóa ảnh nếu có
-        if ($brand->logo && Storage::disk('public')->exists(str_replace('/storage/', '', $brand->logo))) {
-            Storage::disk('public')->delete(str_replace('/storage/', '', $brand->logo));
+        if ($brand->logo) {
+            $this->handleLogoUpload(null, $brand->logo); // chỉ xóa ảnh cũ
         }
 
         return $brand->delete();
+    }
+
+    public function paginate($perPage = 10)
+    {
+        return Brand::select(['id', 'name', 'slug', 'logo', 'country'])
+            ->orderByDesc('created_at')
+            ->paginate($perPage);
     }
 }

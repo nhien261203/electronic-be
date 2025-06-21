@@ -43,11 +43,14 @@ class BrandController extends Controller
             return response()->json(['message' => 'Đã xảy ra lỗi khi tạo thương hiệu.'], 500);
         }
     }
-    public function index()
+    public function index(Request $request)
     {
-        $brands = $this->brandRepository->getAll();
-        return response()->json(['data' => $brands]);
+        $perPage = $request->get('per_page', 10); // Mặc định mỗi trang có 10 item
+        $brands = $this->brandRepository->paginate($perPage);
+
+        return response()->json($brands);
     }
+
     public function update(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
