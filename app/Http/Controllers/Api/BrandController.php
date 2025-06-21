@@ -43,4 +43,9 @@ class BrandController extends Controller
             return response()->json(['message' => 'Đã xảy ra lỗi khi tạo thương hiệu.'], 500);
         }
     }
+    public function index()
+    {
+        $brands = $this->brandRepository->getAll();
+        return response()->json(['data' => $brands]);
+    }
 }

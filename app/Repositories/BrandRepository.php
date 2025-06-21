@@ -35,4 +35,8 @@ class BrandRepository implements BrandRepositoryInterface
         //Tạo bản ghi trong database
         return Brand::create($data);
     }
+    public function getAll()
+    {
+        return Brand::orderBy('created_at', 'desc')->get();
+    }
 }

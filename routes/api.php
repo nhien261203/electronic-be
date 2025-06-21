@@ -23,4 +23,5 @@ Route::get('/hello', function () {
 });
 
 Route::post('/brands', [BrandController::class, 'store']);
+Route::get('/brands', [BrandController::class, 'index']);
 
