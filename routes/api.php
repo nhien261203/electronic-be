@@ -22,6 +22,6 @@ Route::get('/hello', function () {
     return response()->json(['message' => 'Hello từ Backend Laravel!']);
 });
 
-Route::post('/brands', [BrandController::class, 'store']);
-Route::get('/brands', [BrandController::class, 'index']);
+Route::apiResource('brands', BrandController::class);
+
 

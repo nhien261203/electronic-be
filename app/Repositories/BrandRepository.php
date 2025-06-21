@@ -39,4 +39,52 @@ class BrandRepository implements BrandRepositoryInterface
     {
         return Brand::orderBy('created_at', 'desc')->get();
     }
+
+    public function findById($id)
+    {
+        return Brand::findOrFail($id);
+    }
+
+    public function update($id, array $data)
+    {
+        $brand = Brand::findOrFail($id);
+
+        $slug = Str::slug($data['name']);
+
+        // Check nếu slug mới đã tồn tại (trừ chính nó)
+        if (Brand::where('slug', $slug)->where('id', '!=', $id)->exists()) {
+            throw ValidationException::withMessages([
+                'name' => ['Tên thương hiệu đã tồn tại.']
+            ]);
+        }
+
+        $data['slug'] = $slug;
+
+        // Xử lý cập nhật ảnh nếu có
+        if (isset($data['logo']) && $data['logo']) {
+            // Xóa ảnh cũ nếu tồn tại
+            if ($brand->logo && Storage::disk('public')->exists(str_replace('/storage/', '', $brand->logo))) {
+                Storage::disk('public')->delete(str_replace('/storage/', '', $brand->logo));
+            }
+
+            $file = $data['logo'];
+            $path = $file->store('brands', 'public');
+            $data['logo'] = Storage::url($path);
+        }
+
+        $brand->update($data);
+        return $brand;
+    }
+
+    public function delete($id)
+    {
+        $brand = Brand::findOrFail($id);
+
+        // Xóa ảnh nếu có
+        if ($brand->logo && Storage::disk('public')->exists(str_replace('/storage/', '', $brand->logo))) {
+            Storage::disk('public')->delete(str_replace('/storage/', '', $brand->logo));
+        }
+
+        return $brand->delete();
+    }
 }
