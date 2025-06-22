@@ -22,6 +22,10 @@ Route::get('/hello', function () {
     return response()->json(['message' => 'Hello từ Backend Laravel!']);
 });
 
+// Thêm route để lấy danh sách các quốc gia
+Route::get('/brands/countries', [BrandController::class, 'getCountries']);
 Route::apiResource('brands', BrandController::class);
+
+
 
 

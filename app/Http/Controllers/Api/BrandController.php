@@ -45,11 +45,22 @@ class BrandController extends Controller
     }
     public function index(Request $request)
     {
-        $perPage = $request->get('per_page', 10); // Mặc định mỗi trang có 10 item
-        $brands = $this->brandRepository->paginate($perPage);
+        $perPage = $request->get('per_page', 10);
+        $search = $request->get('search');
+        $country = $request->get('country');
 
+        $brands = $this->brandRepository->paginate($perPage, $search, $country);
         return response()->json($brands);
     }
+
+    // Thêm phương thức để lấy danh sách các quốc gia
+    public function getCountries()
+    {
+        $countries = $this->brandRepository->getDistinctCountries();
+        return response()->json($countries);
+    }
+
+
 
     public function update(Request $request, $id)
     {

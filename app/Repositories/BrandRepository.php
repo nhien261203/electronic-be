@@ -105,10 +105,28 @@ class BrandRepository implements BrandRepositoryInterface
         return $brand->delete();
     }
 
-    public function paginate($perPage = 10)
+    public function paginate($perPage = 10, $search = null, $country = null)
     {
-        return Brand::select(['id', 'name', 'slug', 'logo', 'country'])
+        $query = Brand::query();
+
+        if ($search) {
+            $query->where('name', 'like', '%' . $search . '%');
+        }
+
+        if ($country) {
+            $query->where('country', $country);
+        }
+
+        return $query->select(['id', 'name', 'slug', 'logo', 'country'])
             ->orderByDesc('created_at')
             ->paginate($perPage);
+    }
+
+    public function getDistinctCountries()
+    {
+        return Brand::select('country')
+            ->whereNotNull('country')
+            ->distinct()
+            ->pluck('country');
     }
 }
