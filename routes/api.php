@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\BrandController;
+use App\Http\Controllers\Api\CategoryController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -25,6 +26,8 @@ Route::get('/hello', function () {
 // Thêm route để lấy danh sách các quốc gia
 Route::get('/brands/countries', [BrandController::class, 'getCountries']);
 Route::apiResource('brands', BrandController::class);
+
+Route::apiResource('categories', CategoryController::class);
 
 
 
