@@ -29,9 +29,9 @@ class Category extends Model
         return $this->hasMany(Category::class, 'parent_id');
     }
 
-    // quan hệ sản phẩm sau này
-    // public function products()
-    // {
-    //     return $this->hasMany(Product::class);
-    // }
+    // quan hệ sản phẩm 
+    public function products()
+    {
+        return $this->hasMany(Product::class);
+    }
 }
