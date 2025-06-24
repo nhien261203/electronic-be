@@ -12,11 +12,10 @@ use Intervention\Image\Facades\Image;
 class BrandRepository implements BrandRepositoryInterface
 {
     /**
-     * Resize, chuyển sang .webp và lưu ảnh logo mới
+     * Xử lý lưu logo mới: resize, chuyển sang WebP và xoá logo cũ nếu có
      */
     private function handleLogoUpload($file, $oldPath = null)
     {
-        // Xoá ảnh cũ nếu tồn tại
         if ($oldPath) {
             $oldRelativePath = str_replace('/storage/', '', $oldPath);
             if (Storage::disk('public')->exists($oldRelativePath)) {
@@ -24,20 +23,17 @@ class BrandRepository implements BrandRepositoryInterface
             }
         }
 
-        // Resize và convert ảnh sang WebP
         $image = Image::make($file)
             ->resize(300, 300, function ($constraint) {
                 $constraint->aspectRatio();
                 $constraint->upsize();
             })
-            ->encode('webp', 80); // 80% chất lượng, cân bằng tốc độ & độ nét
+            ->encode('webp', 80);
 
         $filename = 'brands/' . uniqid('brand_') . '.webp';
-
-        // Lưu vào storage/app/public/brands
         Storage::disk('public')->put($filename, $image);
 
-        return Storage::url($filename); // Trả về dạng /storage/brands/xxx.webp
+        return Storage::url($filename); // Trả về đường dẫn public /storage/brands/...
     }
 
     public function store(array $data)
@@ -50,6 +46,7 @@ class BrandRepository implements BrandRepositoryInterface
         }
 
         $data['slug'] = $slug;
+        $data['status'] = $data['status'] ?? 1; // Mặc định là hiển thị
 
         if (!empty($data['logo'])) {
             $data['logo'] = $this->handleLogoUpload($data['logo']);
@@ -60,7 +57,8 @@ class BrandRepository implements BrandRepositoryInterface
 
     public function getAll()
     {
-        return Brand::select(['id', 'name', 'slug', 'logo', 'country'])
+        return Brand::where('status', 1)
+            ->select(['id', 'name', 'slug', 'logo', 'country'])
             ->orderByDesc('created_at')
             ->get();
     }
@@ -82,6 +80,7 @@ class BrandRepository implements BrandRepositoryInterface
         }
 
         $data['slug'] = $slug;
+        $data['status'] = $data['status'] ?? $brand->status;
 
         if (!empty($data['logo'])) {
             $data['logo'] = $this->handleLogoUpload($data['logo'], $brand->logo);
@@ -105,7 +104,7 @@ class BrandRepository implements BrandRepositoryInterface
         return $brand->delete();
     }
 
-    public function paginate($perPage = 10, $search = null, $country = null)
+    public function paginate($perPage = 10, $search = null, $country = null, $status = null)
     {
         $query = Brand::query();
 
@@ -117,7 +116,11 @@ class BrandRepository implements BrandRepositoryInterface
             $query->where('country', $country);
         }
 
-        return $query->select(['id', 'name', 'slug', 'logo', 'country'])
+        if (!is_null($status)) {
+            $query->where('status', $status);
+        }
+
+        return $query->select(['id', 'name', 'slug', 'logo', 'country', 'status'])
             ->orderByDesc('created_at')
             ->paginate($perPage);
     }
