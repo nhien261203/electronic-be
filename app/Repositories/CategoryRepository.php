@@ -27,7 +27,8 @@ class CategoryRepository implements CategoryRepositoryInterface
 
     public function paginate($perPage, $search = null)
     {
-        $query = Category::query();
+        $query = Category::with('parent')
+            ->select('id', 'name', 'slug', 'parent_id', 'created_at');
 
         if ($search) {
             $query->where('name', 'like', '%' . $search . '%');
@@ -38,7 +39,7 @@ class CategoryRepository implements CategoryRepositoryInterface
 
     public function findById($id)
     {
-        return Category::findOrFail($id);
+        return Category::with('parent')->findOrFail($id);;
     }
 
     public function update($id, array $data)
