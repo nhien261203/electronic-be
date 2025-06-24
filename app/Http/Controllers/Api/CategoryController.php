@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Interfaces\CategoryRepositoryInterface;
-use Illuminate\Support\Facades\Validator; 
+use Illuminate\Support\Facades\Validator;
 
 class CategoryController extends Controller
 {
@@ -20,8 +20,9 @@ class CategoryController extends Controller
     {
         $perPage = $request->get('per_page', 10);
         $search = $request->get('search');
+        $status = $request->get('status'); // Lấy thêm status từ query
 
-        $categories = $this->categoryRepository->paginate($perPage, $search);
+        $categories = $this->categoryRepository->paginate($perPage, $search, $status);
         return response()->json($categories);
     }
 
@@ -29,7 +30,8 @@ class CategoryController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-            'parent_id' => 'nullable|exists:categories,id'
+            'parent_id' => 'nullable|exists:categories,id',
+            'status' => 'nullable|in:0,1', // Validate status
         ]);
 
         if ($validator->fails()) {
@@ -50,7 +52,8 @@ class CategoryController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-            'parent_id' => 'nullable|exists:categories,id'
+            'parent_id' => 'nullable|exists:categories,id',
+            'status' => 'nullable|in:0,1', // Validate status
         ]);
 
         if ($validator->fails()) {

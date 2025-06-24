@@ -14,6 +14,7 @@ class Category extends Model
         'name',
         'slug',
         'parent_id',
+        'status',
     ];
 
     // 🔁 Quan hệ danh mục cha
