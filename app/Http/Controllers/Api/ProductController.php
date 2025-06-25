@@ -37,7 +37,7 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         $rules = [
-            'name' => 'required|string|max:255',
+            'name' => 'required||string|max:255|unique:products,name,',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
             'original_price' => 'nullable|numeric|min:0',
@@ -88,7 +88,7 @@ class ProductController extends Controller
     public function update(Request $request, $id)
     {
         $rules = [
-            'name' => 'sometimes|required|string|max:255',
+            'name' => 'sometimes|required|string|max:255|unique:products,name,',
             'description' => 'nullable|string',
             'price' => 'sometimes|required|numeric|min:0',
             'original_price' => 'nullable|numeric|min:0',

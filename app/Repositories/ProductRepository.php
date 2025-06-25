@@ -32,11 +32,11 @@ class ProductRepository implements ProductRepositoryInterface
     {
         return DB::transaction(function () use ($data) {
             // Tạo slug từ tên sản phẩm
-            $data['slug'] = Str::slug($data['name']);
+            // $data['slug'] = Str::slug($data['name']);
 
             $product = Product::create([
                 'name' => $data['name'],
-                'slug' => $data['slug'],
+                // 'slug' => $data['slug'],
                 'description' => $data['description'] ?? null,
                 'price' => $data['price'],
                 'original_price' => $data['original_price'] ?? null,
@@ -82,11 +82,11 @@ class ProductRepository implements ProductRepositoryInterface
         return DB::transaction(function () use ($id, $data) {
             $product = $this->findById($id);
 
-            $data['slug'] = isset($data['name']) ? Str::slug($data['name']) : $product->slug;
+            //$data['slug'] = isset($data['name']) ? Str::slug($data['name']) : $product->slug;
 
             $product->update([
                 'name' => $data['name'] ?? $product->name,
-                'slug' => $data['slug'],
+                // 'slug' => $data['slug'],
                 'description' => $data['description'] ?? $product->description,
                 'price' => $data['price'] ?? $product->price,
                 'original_price' => $data['original_price'] ?? $product->original_price,
