@@ -37,7 +37,7 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         $rules = [
-            'name' => 'required||string|max:255|unique:products,name,',
+            'name' => 'required|string|max:255|unique:products,name,',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
             'original_price' => 'nullable|numeric|min:0',
@@ -47,6 +47,7 @@ class ProductController extends Controller
             'brand_id' => 'required|exists:brands,id',
             'status' => 'nullable|in:0,1',
             'images.*' => 'nullable|image|mimes:jpeg,png,jpg,svg|max:2048',
+            'thumbnail_index' => 'nullable|integer|min:0',
         ];
 
         $validator = Validator::make($request->all(), $rules);
@@ -88,7 +89,7 @@ class ProductController extends Controller
     public function update(Request $request, $id)
     {
         $rules = [
-            'name' => 'sometimes|required|string|max:255|unique:products,name,',
+            'name' => 'sometimes|required|string|max:255|unique:products,name,'. $id,
             'description' => 'nullable|string',
             'price' => 'sometimes|required|numeric|min:0',
             'original_price' => 'nullable|numeric|min:0',
@@ -98,6 +99,8 @@ class ProductController extends Controller
             'brand_id' => 'sometimes|required|exists:brands,id',
             'status' => 'nullable|in:0,1',
             'images.*' => 'nullable|image|mimes:jpeg,png,jpg,svg|max:2048',
+            'thumbnail_index' => 'nullable|integer|min:0',
+
         ];
 
         $validator = Validator::make($request->all(), $rules);

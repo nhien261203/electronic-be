@@ -31,12 +31,8 @@ class ProductRepository implements ProductRepositoryInterface
     public function store(array $data)
     {
         return DB::transaction(function () use ($data) {
-            // Tạo slug từ tên sản phẩm
-            // $data['slug'] = Str::slug($data['name']);
-
             $product = Product::create([
                 'name' => $data['name'],
-                // 'slug' => $data['slug'],
                 'description' => $data['description'] ?? null,
                 'price' => $data['price'],
                 'original_price' => $data['original_price'] ?? null,
@@ -47,15 +43,17 @@ class ProductRepository implements ProductRepositoryInterface
                 'status' => $data['status'] ?? 1,
             ]);
 
-            // Xử lý upload ảnh sản phẩm nếu có (mảng)
+            // Xử lý upload ảnh sản phẩm nếu có
             if (!empty($data['images']) && is_array($data['images'])) {
+                $thumbnailIndex = isset($data['thumbnail_index']) ? (int)$data['thumbnail_index'] : 0;
+
                 foreach ($data['images'] as $index => $imageFile) {
                     $imageUrl = $this->handleImageUpload($imageFile);
 
                     ProductImage::create([
                         'product_id' => $product->id,
                         'image_url' => $imageUrl,
-                        'is_thumbnail' => $index === 0, // Ảnh đầu tiên làm thumbnail
+                        'is_thumbnail' => $index === $thumbnailIndex,
                     ]);
                 }
             }
@@ -82,11 +80,8 @@ class ProductRepository implements ProductRepositoryInterface
         return DB::transaction(function () use ($id, $data) {
             $product = $this->findById($id);
 
-            //$data['slug'] = isset($data['name']) ? Str::slug($data['name']) : $product->slug;
-
             $product->update([
                 'name' => $data['name'] ?? $product->name,
-                // 'slug' => $data['slug'],
                 'description' => $data['description'] ?? $product->description,
                 'price' => $data['price'] ?? $product->price,
                 'original_price' => $data['original_price'] ?? $product->original_price,
@@ -97,9 +92,10 @@ class ProductRepository implements ProductRepositoryInterface
                 'status' => $data['status'] ?? $product->status,
             ]);
 
-            // Nếu có hình mới upload, xóa hình cũ và thêm hình mới
             if (!empty($data['images']) && is_array($data['images'])) {
-                // Xóa ảnh cũ
+                $thumbnailIndex = isset($data['thumbnail_index']) ? (int)$data['thumbnail_index'] : 0;
+
+                // Xoá ảnh cũ
                 foreach ($product->images as $oldImage) {
                     $relativePath = str_replace('/storage/', '', $oldImage->image_url);
                     if (Storage::disk('public')->exists($relativePath)) {
@@ -108,14 +104,14 @@ class ProductRepository implements ProductRepositoryInterface
                     $oldImage->delete();
                 }
 
-                // Thêm ảnh mới
+                // Upload ảnh mới
                 foreach ($data['images'] as $index => $imageFile) {
                     $imageUrl = $this->handleImageUpload($imageFile);
 
                     ProductImage::create([
                         'product_id' => $product->id,
                         'image_url' => $imageUrl,
-                        'is_thumbnail' => $index === 0,
+                        'is_thumbnail' => $index === $thumbnailIndex,
                     ]);
                 }
             }
@@ -123,6 +119,7 @@ class ProductRepository implements ProductRepositoryInterface
             return $product->load('images', 'brand', 'category');
         });
     }
+
 
     public function delete($id)
     {
