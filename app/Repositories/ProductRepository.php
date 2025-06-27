@@ -72,7 +72,7 @@ class ProductRepository implements ProductRepositoryInterface
 
     public function findById($id)
     {
-        return Product::with(['images', 'brand', 'category'])->findOrFail($id);
+        return Product::with(['brand', 'category', 'images'])->findOrFail($id);
     }
 
     public function update($id, array $data)

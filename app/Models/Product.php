@@ -19,6 +19,8 @@ class Product extends Model
         'brand_id',
         'status',
     ];
+    protected $appends = ['thumbnail_url'];
+
 
     public function category()
     {
@@ -33,5 +35,12 @@ class Product extends Model
     public function images()
     {
         return $this->hasMany(ProductImage::class);
+    }
+
+    //lay anh thumbnail
+    public function getThumbnailUrlAttribute()
+    {
+        $thumbnail = $this->images->firstWhere('is_thumbnail', 1);
+        return $thumbnail ? $thumbnail->image_url : optional($this->images->first())->image_url;
     }
 }
